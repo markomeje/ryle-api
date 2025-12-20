@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleDuplicateKeyException(DuplicateKeyException e){
         Map<String, Object> data = new HashMap<>();
         data.put("message", e.getMessage());
-        data.put("status", HttpStatus.CONFLICT.value());
+        data.put("status", HttpStatus.CONFLICT);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(data);
     }
 }
