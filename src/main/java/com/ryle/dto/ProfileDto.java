@@ -13,11 +13,11 @@ import java.time.Instant;
 @Builder
 public class ProfileDto {
     private String id;
-    private  String clerkId;
-    private  String firstName;
-    private  String lastName;
-    private  String email;
-    private  Integer credits;
-    private  String photoUrl;
+    private String clerkId;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private Integer credits;
+    private String photoUrl;
     private Instant createdAt;
 }

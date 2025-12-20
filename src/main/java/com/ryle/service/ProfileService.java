@@ -1,4 +1,6 @@
 package com.ryle.service;
+import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoWriteException;
 import com.ryle.document.ProfileDocument;
 import com.ryle.dto.ProfileDto;
 import com.ryle.repository.ProfileRepository;
