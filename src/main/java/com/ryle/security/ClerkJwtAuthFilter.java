@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.stream.Collectors;
+import org.springframework.lang.NonNull;
 
 @Component
 public class ClerkJwtAuthFilter extends OncePerRequestFilter {
@@ -27,11 +27,11 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
     private ClerkJwksProvider clerkJwksProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+        @NonNull HttpServletResponse response,
+        @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        if(request.getRequestURI().contains("/webhooks")){
+        if(request.getRequestURI().contains("/webhook")){
             filterChain.doFilter(request, response);
         }
 
@@ -58,19 +58,20 @@ public class ClerkJwtAuthFilter extends OncePerRequestFilter {
             String kid = headerNode.get("kid").asText();
             PublicKey publicKey = clerkJwksProvider.getPublicKey(kid);
 
-            Claims claims = (Claims) Jwts.parser()
-                 .setSigningKey(publicKey)
-                .setAllowedClockSkewSeconds(60)
+            Claims claims = Jwts.parser()
+                .verifyWith(publicKey)
+                .clockSkewSeconds(60)
                 .requireIssuer(clerkIssuer)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
 
             String clerkId = claims.getSubject();
+            SimpleGrantedAuthority role = new SimpleGrantedAuthority("ROLE_USER");
             UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
                     clerkId, null,
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    Collections.singletonList(role)
                 );
             SecurityContextHolder.getContext().setAuthentication(authToken);
             filterChain.doFilter(request, response);

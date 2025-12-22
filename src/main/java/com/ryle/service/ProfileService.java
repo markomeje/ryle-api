@@ -16,7 +16,7 @@ public class ProfileService {
             return updateProfile(profileDto);
         }
 
-        Integer defaultCredit = (Integer) 5;
+        Integer defaultCredit = 5;
         ProfileDocument profile = ProfileDocument.builder()
             .clerkId(profileDto.getClerkId())
             .email(profileDto.getEmail())
@@ -29,7 +29,7 @@ public class ProfileService {
 
         profile = profileRepository.save(profile);
         return ProfileDto.builder()
-            .id(profile.getId())
+             .id(profile.getId())
            .clerkId(profile.getClerkId())
            .email(profile.getEmail())
            .firstName(profile.getFirstName())
@@ -41,7 +41,7 @@ public class ProfileService {
     }
 
     public Boolean existsByClerkId(String clerkId) {
-        return (Boolean) profileRepository.existsByClerkId(clerkId);
+        return profileRepository.existsByClerkId(clerkId);
     }
 
     public ProfileDto updateProfile(ProfileDto profileDto) {
