@@ -1,4 +1,5 @@
 package com.ryle.exception;
+import com.ryle.response.ApiResponse;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,5 +17,12 @@ public class GlobalExceptionHandler {
         data.put("message", e.getMessage());
         data.put("status", HttpStatus.CONFLICT);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(data);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiResponse> apiException(ApiException e) {
+        String message = e.getMessage();
+        ApiResponse response = new ApiResponse(false, message);
+        return new ResponseEntity<ApiResponse>(response, HttpStatus.BAD_REQUEST);
     }
 }

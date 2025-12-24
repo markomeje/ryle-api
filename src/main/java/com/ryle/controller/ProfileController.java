@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/profile")
+@RequestMapping("/auth")
 public class ProfileController {
     private final ProfileService profileService;
 
@@ -19,8 +19,7 @@ public class ProfileController {
 
     @PostMapping("/register")
     public ResponseEntity<ProfileDto> registerProfile(@RequestBody ProfileDto profileDto) {
-        HttpStatus status = profileService.existsByClerkId(profileDto.getClerkId()) ? HttpStatus.OK : HttpStatus.CREATED;
         ProfileDto savedProfile = profileService.createProfile(profileDto);
-        return ResponseEntity.status(status).body(savedProfile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedProfile);
     }
 }

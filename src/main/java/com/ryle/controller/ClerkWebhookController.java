@@ -1,10 +1,10 @@
 package com.ryle.controller;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ryle.component.ClerkComponent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,25 +18,24 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 @RequestMapping("/webhook/clerk")
 public class ClerkWebhookController {
-
-    @Value("${clerk.webhook.secret}")
-    private String webhookSecret;
     private final ClerkComponent clerkComponent;
+    private static final Logger logger = LoggerFactory.getLogger(ClerkWebhookController.class);
 
     @PostMapping("/handle")
     public ResponseEntity<?> handleWebhook(@RequestHeader("svix-id") String id,
         @RequestHeader("svix-timestamp") String timestamp, @RequestHeader("svix-signature") String signature,
         @RequestBody String payload) {
         try {
-            boolean IsValid = clerkComponent.verifyWebhookSignature(id, timestamp, signature);
-            if(!IsValid) {
+            boolean isValid = clerkComponent.verifyWebhookSignature(id, timestamp, signature);
+            if(!isValid) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid webhook signature");
             }
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(payload);
-            String type = rootNode.path("type").asText();
-            JsonNode data = rootNode.path("data");
+            JsonNode webhookPayload = mapper.readTree(payload);
+
+            String type = webhookPayload.path("type").asText();
+            JsonNode data = webhookPayload.path("data");
 
             switch (type) {
                 case "user.created":
@@ -46,13 +45,12 @@ public class ClerkWebhookController {
                 case "user.delete":
                     clerkComponent.handleUserDeletedEvent(data);
             }
-        } catch (JsonProcessingException j) {
-            throw new RuntimeException(j);
+
+            return ResponseEntity.status(HttpStatus.OK).body("Clerk webhook handled successfully");
         } catch (Exception e) {
+            logger.error("Unauthorised Clerk webhook recieved: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,  e.getMessage());
         }
-
-        return ResponseEntity.ok(webhookSecret);
     }
 
 

@@ -1,17 +1,18 @@
 package com.ryle.document;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
-
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
 @Document(collection = "profiles")
 public class ProfileDocument {

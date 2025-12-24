@@ -2,19 +2,23 @@ package com.ryle.component;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ryle.dto.ProfileDto;
 import com.ryle.service.ProfileService;
+import com.ryle.service.UserCreditService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ClerkComponent {
     private final ProfileService profileService;
+    private final UserCreditService userCreditService;
+    private static final Logger logger = LoggerFactory.getLogger(ClerkComponent.class);
 
-    public ClerkComponent(ProfileService profileService) {
+    public ClerkComponent(ProfileService profileService, UserCreditService userCreditService) {
         this.profileService = profileService;
+        this.userCreditService = userCreditService;
     }
 
-    private ProfileDto updateOrCreateUser(JsonNode data) {
-        String clerkId = data.path("id").asText();
-
+    private ProfileDto prepareProfileData(JsonNode data, String clerkId) {
         String email = "";
         JsonNode emails = data.path("email_addresses");
         if(emails.isArray() && !emails.isEmpty()) {
@@ -26,25 +30,26 @@ public class ClerkComponent {
         String photoUrl = data.path("image_url").asText("");
 
         return ProfileDto.builder()
-          .clerkId(clerkId)
-          .email(email)
-          .firstName(firstName)
-          .lastName(lastName)
-          .photoUrl(photoUrl)
-          .build();
+            .clerkId(clerkId)
+            .email(email)
+            .firstName(firstName)
+            .lastName(lastName)
+            .photoUrl(photoUrl)
+            .build();
     }
 
     public void handleUserCreatedEvent(JsonNode data) {
-        ProfileDto newProfileDto = updateOrCreateUser(data);
+        String clerkId = data.path("id").asText();
+        ProfileDto newProfileDto = prepareProfileData(data, clerkId);
+
         profileService.createProfile(newProfileDto);
+        userCreditService.createInitialCredits(clerkId);
     }
 
     public void handleUserUpdatedEvent(JsonNode data) {
-        ProfileDto updateProfileDto = updateOrCreateUser(data);
-        ProfileDto updatedProfile = profileService.updateProfile(updateProfileDto);
-        if(updatedProfile == null) {
-            handleUserCreatedEvent(data);
-        }
+        String clerkId = data.path("id").asText();
+        ProfileDto updateProfileDto = prepareProfileData(data, clerkId);
+        profileService.updateProfile(updateProfileDto);
     }
 
     public void handleUserDeletedEvent(JsonNode data) {
